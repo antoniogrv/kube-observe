@@ -1,0 +1,56 @@
+<mxfile host="app.diagrams.net" modified="2024-05-02T10:03:28.026Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36" etag="FsgWYje0lFCKCawcpYm0" version="24.3.1" type="device">
+  <diagram name="Pagina-1" id="tTSEhdzETMhI8ZKAam-f">
+    <mxGraphModel dx="988" dy="543" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oMn_kWoKjgPGQMo7npNa-4" target="oMn_kWoKjgPGQMo7npNa-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-3" value="opera" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=8;" vertex="1" connectable="0" parent="oMn_kWoKjgPGQMo7npNa-2">
+          <mxGeometry x="-0.3086" relative="1" as="geometry">
+            <mxPoint x="3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-4" value="Studente&lt;br&gt;post-esame" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="90" y="480" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-5" value="si confronta con" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=8;" edge="1" parent="1" source="oMn_kWoKjgPGQMo7npNa-6">
+          <mxGeometry x="0.2487" relative="1" as="geometry">
+            <mxPoint x="340" y="510" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="310" y="510" />
+              <mxPoint x="310" y="510" />
+            </Array>
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-6" value="" style="image;points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;image=img/lib/allied_telesis/computer_and_terminals/Personal_Computer.svg;" vertex="1" parent="1">
+          <mxGeometry x="170" y="485" width="36.89" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-8" value="Kali" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="166.89" y="535" width="40" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-10" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/App_Services.svg;" vertex="1" parent="1">
+          <mxGeometry x="220" y="495" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-18" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/compute/Kubernetes_Services.svg;" vertex="1" parent="1">
+          <mxGeometry x="350" y="445" width="147.33" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="oMn_kWoKjgPGQMo7npNa-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="423.6700000000001" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-21" value="orchestra" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;" vertex="1" connectable="0" parent="oMn_kWoKjgPGQMo7npNa-20">
+          <mxGeometry x="-0.3271" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="oMn_kWoKjgPGQMo7npNa-19" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/2109px-Kubernetes_logo_without_workmark.svg.png;" vertex="1" parent="1">
+          <mxGeometry x="397.91999999999996" y="340" width="51.5" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
