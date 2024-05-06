@@ -1,0 +1,42 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                           Document style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
+
+% Importing report style and the first pages 
+\input{report.sty}
+\usepackage{hyperref}
+\usepackage[sorting=none]{biblatex}
+\addbibresource{bibliografia.bib}
+
+% sections without numbers, but still in table of contents
+%\setcounter{secnumdepth}{0} % remove "%" to include
+
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\begin{document}
+
+% adding the first two pages 
+\FirstPage
+\pagebreak
+
+% creating table of contents 
+\setlength{\parskip}{0em}
+\lhead{Indice dei contenuti} % section header
+\renewcommand{\baselinestretch}{0.95}\normalsize
+\tableofcontents
+\renewcommand{\baselinestretch}{1.0}\normalsize
+\setlength{\parskip}{1em}
+\newpage
+
+% adding the different sections
+\input{sections/intro.tex}
+\newpage
+\input{sections/biblio.tex}
+
+%=================================================================
+%                           End Document
+%=================================================================
+\end{document}
