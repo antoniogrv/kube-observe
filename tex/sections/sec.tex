@@ -1,0 +1,80 @@
+% self defined colors for colored code (can add more colors)
+\definecolor{green}{rgb}{0.1,0.5,0.2} % rgb defined between 0 and 1
+\definecolor{blue}{rgb}{0,0.3,0.7}
+\definecolor{purple}{rgb}{0.7,0,0.7}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.3,0}
+
+% writing code in the document as list
+% can be changed, add changed version before your code (possible to have multiple versions within one doc)
+\lstset{ 
+  basicstyle=\ttfamily\UseRawInputEncoding\small,
+  extendedchars=true, % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  breaklines=true,                 
+  escapeinside={\%*}{*)}, % if you want to add LaTeX within your code
+  keepspaces=true,
+  morekeywords={*,...}, % if you want to add more keywords
+  showstringspaces=false,          
+  tabsize=2, % sets default tabsize to 2 spaces
+  numbersep=5pt, % how far the line-numbers are from the code
+  numbers=left,                   
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{purple},
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  identifierstyle=\color{codeorange}
+}
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\section{Sistemi SIEM e SOAR}
+\lhead{Sistemi SIEM e SOAR}
+
+I sistemi \textbf{SIEM} (Security Information and Event Management) e SOAR (Security Orchestration, Automation, and Response) sono fondamentali per la gestione della sicurezza informatica in ambienti complessi e sempre più minacciati. Il SIEM funge da sistema centrale per raccogliere, normalizzare e analizzare i dati provenienti da diverse fonti, come registri di sistema, eventi di sicurezza e log di rete. Questo consente agli analisti di sicurezza (in genere situati in un SOC) di individuare e rispondere rapidamente alle minacce, identificando schemi anomali o comportamenti sospetti.
+
+D'altra parte, il \textbf{SOAR} estende le capacità del SIEM integrando l'automazione e l'orchestrazione delle risposte alla sicurezza (da qui il nome). Questo significa che non solo il SOAR può individuare gli incidenti di sicurezza (grazie al feedback ricevuto dal SIEM, oppure in maniera autonoma), ma può anche prendere azioni automatiche per mitigare il rischio e risolvere i problemi di sicurezza. Ciò include l'avvio di risposte predefinite ("playbooks"), come l'isolamento di dispositivi compromessi, il blocco di indirizzi IP o l'avvio di investigazioni approfondite.
+
+Insieme, SIEM e SOAR formano un ecosistema potente per la sicurezza informatica, fornendo agli operatori preposti gli strumenti necessari per rilevare, rispondere e mitigare le minacce in modo tempestivo ed efficiente. Questa integrazione aiuta le organizzazioni di grandi dimensioni a rafforzare le loro difese digitali e a proteggere i loro dati, riducendo al contempo il tempo di risposta agli incidenti e migliorando la loro capacità di adattarsi a nuove e sempre più sofisticate minacce informatiche.
+
+\begin{center}
+    \includegraphics[width=4in]{images/siem.png}
+\end{center}
+
+In genere, con SIEM intendiamo una \textit{dashboard} che raccoglie informazioni da una vasta gamma di fonti; con SOAR, invece, intendiamo un engine (cioè un software) che automatizza le risposte ai problemi di sicurezza -- problemi individuati grazie ad informazioni pervenute dal SIEM, da sistemi terzi o da una componente del SOAR stesso.
+
+Nella realtà, queste definizioni sono molto "liquide" e tendono a sovrapporsi. Si parla per lo più di "architetture di sicurezza" che estraggono le informazioni da diverse fonti, permettendo quindi il monitoring dello stato del sistema da parte degli umani (SIEM) e che nutriscono anche il bacino informativo di un engine che permette risposte automatizzate (SOAR).
+
+\begin{center}
+    \includegraphics[width=4in]{images/soar.png}
+\end{center}
+
+D'altra parte, il SOAR è caratterizzato da molteplici "knowledge bases" che permettono di definire in maniera più organica i protocolli di risposta. Una knowledge base può contenere, ad esempio, le metodologie di attacco più usuali e tipiche per il sistema in osservazione, con relative vulnerabilità ben note (es. CVE) e metodologie di risposta e mitigazione. Le specifiche implementazioni di un SOAR dipendendono dal vendor e dal software in uso (anche se in genere parliamo di molteplici software che coesistono e collaborano), ma nella sua forma classica permette comunque l'automatizzazione di risposte basate su protocolli ben definiti in funzione di feedback ricevuti da terzi.
+
+L'implementazione di un SOAR può anche ridursi ad "se accade questo, fai quello" -- nella pratica, è questo ciò che accade; tuttavia, in un ambiente enterprise, il "se accade questo" implicherebbe un feedback loop composto da pipeline più o meno articolate: le knowledge bases si incrociano per formare una fonte di verità da cui far scaturare una risposta. Ad esempio, i log del webserver PHP e i log di MySQL potrebbero convergere in una pipeline unificata che normalizzerebbe i dati, aggregandoli e componendoli in una misura tale che il successivo step (il "fai quello") sia in grado di prendere una decisione puntuale e informata.
+
+Concretamente, spesso si parla di un sistema unificato -- specialmente su Kubernetes, dove il principale sistema di osservabilità open-source, cioè l'\href{https://www.elastic.co/elastic-stack}{ELK} Stack, è contemporaneamnete definito SIEM e SOAR: banalmente, è sufficiente immaginare un sistema plug-and-play, in cui molteplici servizi possono essere agganciati ad un orchestratore (come ELK, che indagheremo in dettaglio più avanti), e che governano i feedback loops fra il feeding di nuove informazione (e le relative dashboard per gli utenti, come previsto dai SIEM), e l'automazione di risposte in funzione di tali informazioni (il SOAR), con tutto ciò che può esserci nel mezzo (pipeline di aggregazione, flussi dati, macchine a stati, validatori).
+
+Un esempio pratico è dato dal \href{https://shuffler.io/}{SOAR enterprise "Shuffle"}. Shuffle permette di integrare svariate knowledge bases, fra cui alcuni sistemi SIEM, come il \href{https://searchinform.com/products/siem/}{"Search SIEM" dell'azienda \textit{SearchInform}} (si tratta di soluzioni orientate ai business).
+
+\begin{center}
+    \includegraphics[width=6in]{images/shuffle.png}
+\end{center}
+
+Accorpare le definizioni SOAR e SIEM è in realtà una pratica consolidata. E' sufficiente consultare il \href{https://cloud.google.com/security/products/security-information-event-management?hl=it}{Google Security Operations Center} (del cloud provider di Google, GCP). Questo servizio integra le funzionalità di dashboarding (SIEM) e automation (SOAR) in un unico, pratico SaaS offerto dal provider, e "augmented" (potenziato, migliorato) da servizi terzi del provider, come large-language models e storaging.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/gcp.png}
+\end{center}
+
+Anche le aziende italiane apprezzato le soluzioni "all-in-one". Ad esempio, l'azienda milanese \href{https://www.sgbox.eu/it/}{SGBox} offre un SaaS modulare che integra le funzionalità di SIEM e SOAR, anche in questo caso potenziato da intelligenze artificiali nel contesto della network detection e della log analysis.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/sgbox.png}
+\end{center}
+
+In generale, tutte queste soluzioni prevedono un sistema di logging ("ricordarci cos'è successo"), un sistema di detection ("capire se accade qualcosa fuori dalla norma"), un sistema di alerting ("notificare gli addetti ai lavori quando qualcosa è fuori posto"), coadiuvate da dashboard in real-time, e da moduli integrativi con engine di automazione ala-SOAR. OpenSearch (di proprietà di AWS) definisce con più precisione queste "componenti" (detection, logging, alerting) nella documentazione del suo SIEM SaaS "\href{https://opensearch.org/docs/latest/security-analytics/}{Security Analytics}".
+
+L'autore ha trovato particolarmente interessante la presentazione "\href{https://www.youtube.com/watch?v=vor-xiV25xM}{Automated Cloud-Native Incident Response with Kubernetes and Service Mesh}" dell'americano Matt Turner e l'italiano Francesco Beltramini alla Cloud Native Computing Foundation, in cui si presenta lo specifico caso d'uso dell'osservabilità su cluster Kubernetes, e come i tipici sistemi SOAR e SIEM SaaS oppure on-prem non si coniughino alla perfezione col modo di operare dell'orchestratore, proponendo invece strumenti adeguati alla natura cloud-native ed open-source di Kubernetes. In tal senso, una soluzione è rappresentata da ELK.
+
+In ambito accademico, l'autore non ha rinvenuto alcun paper relativo all'impiego di SOAR e SIEM su Kubernetes.

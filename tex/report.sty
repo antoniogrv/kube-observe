@@ -25,6 +25,98 @@
 \usepackage{tikz}
 \usepackage{upquote}
 \usepackage{tikz}                   % text on top of images
+\usepackage[newfloat]{minted}
+\usepackage{svg}
+\usepackage{amsmath}
+
+\definecolor{white}{gray}{1}
+\definecolor{black}{gray}{0}
+
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray92}{gray}{.92}
+\definecolor{gray90}{gray}{.90}
+\definecolor{gray80}{gray}{.80}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+\definecolor{gray30}{gray}{.30}
+\definecolor{gray20}{gray}{.20}
+\definecolor{gray10}{gray}{.10}
+\definecolor{gray07}{gray}{.07}
+\definecolor{gray05}{gray}{.05}
+\definecolor{gray02}{gray}{.02}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\definecolor{darkgray}{rgb}{0.95,0.95,0.95}
+\definecolor{darkred}{rgb}{0.6,0.0,0.0}
+\definecolor{darkgreen}{rgb}{0,0.50,0}
+
+\definecolor{orange}{rgb}{0.99,0.48,0.13}
+\definecolor{grass}{rgb}{0.18,0.80,0.18}
+\definecolor{pink}{rgb}{0.97,0.15,0.45}
+
+\definecolor{lightred}{rgb}{1, 0.80, 0.82}
+\definecolor{lightblue}{rgb}{0.73, 0.87, 0.98}
+\definecolor{lightgreen}{rgb}{0.86,0.93,0.78}
+\definecolor{lightgray}{rgb}{0.95,0.95,0.95}
+
+
+% For listings
+
+\definecolor{listing-background}{HTML}{f9f7f6}
+\definecolor{listing-numbers}    {HTML} {24292e}
+\definecolor{listing-text-color} {HTML} {24292e}
+
+\definecolor{listing-keyword}    {HTML} {005cc5}
+\definecolor{listing-keyword-2}  {HTML} {d73a49}
+\definecolor{listing-keyword-3}  {HTML} {dc6109}
+\definecolor{listing-keyword-4}  {HTML} {dc6109}
+\definecolor{listing-keyword-5}  {HTML} {6f42c1}
+
+\definecolor{listing-identifier} {HTML} {e36209}
+\definecolor{listing-string}     {HTML} {d73a49}
+\definecolor{listing-comment}    {HTML} {1f8235}
+
+
+% For hyperref
+
+\definecolor{url-color}   {HTML} {005cc5}
+\definecolor{cite-color}  {HTML} {1f8235}
+\definecolor{file-color}  {HTML} {24292e}
+
+
+% For 'about' section
+
+\definecolor{linkedin-blue}   {HTML} {0A66C2}
+\definecolor{github-black}   {HTML} {0D1117}
+\definecolor{telegram-blue}   {HTML} {2F91ED}
+\definecolor{twitter-blue}   {HTML} {1D9BF0}
+\definecolor{orcid-green}   {HTML} {8ab527}
+\definecolor{email-red}   {HTML} {ff6363}
+
+% CODE LISTINGS - MINTED
+
+\usemintedstyle{colorful}
+% Good options (for light themes): default, sas, solarized-light, pastie, colorful, bw
+% solarized-light has not the best readability
+% pastie and colorful may be buggy when using linebreaks and escapeinsides
+
+% To get a list of all available stylesheets, see the online demo at the Pygments
+% website or execute the following command on the command line:
+% $ pygmentize -L styles
+
+
+\setminted{bgcolor=listing-background,
+           escapeinside=¢¢,
+           tabsize=4,
+           linenos,
+           breaklines}
+           
+\newenvironment{code}{\captionsetup{type=listing}}{}
+\SetupFloatingEnvironment{listing}{name=Codice}
 
 % page settings
 \setlength{\marginparwidth}{2cm}    % margins
@@ -171,7 +263,8 @@
                 \put(130,200){\fontsize{28}{28}\selectfont{\Large{Corso di \textbf{Penetration Testing \& Ethical Hacking}}}}
                 \put(130,180){\fontsize{28}{28}\selectfont{\Large{\textbf{Prof. Arcangelo Castiglione, a.a. 2023/2024}}}}
                 \put(130,140){\fontsize{28}{28}\selectfont{\Large{Un'analisi a cura di \textbf{Antonio Gravino}}}}
-                \put(132,115){\fontsize{22}{22}\selectfont{\Large{\hyperlink{www.github.com/antoniogrv/kube-observe}{github.com/antoniogrv/kube-observe}}}}
+                \put(132,115){\fontsize{22}{22}\selectfont{
+                \hspace{-3mm}\Large{\href{https://github.com/antoniogrv/kube-observe/}{github.com/antoniogrv/kube-observe}}}}
                 }]{images/frontpage.pdf}}
 
 

@@ -1,0 +1,128 @@
+% self defined colors for colored code (can add more colors)
+\definecolor{green}{rgb}{0.1,0.5,0.2} % rgb defined between 0 and 1
+\definecolor{blue}{rgb}{0,0.3,0.7}
+\definecolor{purple}{rgb}{0.7,0,0.7}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.3,0}
+
+% writing code in the document as list
+% can be changed, add changed version before your code (possible to have multiple versions within one doc)
+\lstset{ 
+  basicstyle=\ttfamily\UseRawInputEncoding\small,
+  extendedchars=true, % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  breaklines=true,                 
+  escapeinside={\%*}{*)}, % if you want to add LaTeX within your code
+  keepspaces=true,
+  morekeywords={*,...}, % if you want to add more keywords
+  showstringspaces=false,          
+  tabsize=2, % sets default tabsize to 2 spaces
+  numbersep=5pt, % how far the line-numbers are from the code
+  numbers=left,                   
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{purple},
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  identifierstyle=\color{codeorange}
+}
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\section{Tecnologie di orchestrazione}
+\lhead{Tecnologie di orchestrazione}
+
+Riprendendo l'esempio precedente, gli applicativi relativi a DVWA dovrebbero essere distribuiti su un notevole numero di nodi e quindi di macchine virtuali; il miglior modo di distribuirle, e cioè quello più rapido ed efficiente, è quello di containerizzare l'applicazione (nel caso di DVWA, in più container considerando che viene rilasciata con un DBMS MySQL ausiliario). Il container viene quindi replicato sulle macchine virtuali, e le porte del servizio (in casi tipici) vengono esposte verso l'esterno.
+
+L'applicazione che l'attaccante dovrà affrontare, a questo punto, sarà rappresentata da un certo numero di container situati su un diverso numero di macchine virtuali e un altrettanto diverso numero di nodi fisici.
+
+Non si discuteranno gli specifici vantaggi relativi alla containerizzazione a discapito della virtualizzazioni. Ci si limiterà a dire che queste due tecnologie vengono usate insieme, come vedremo; e che, in ogni caso, la distribuzione di applicazioni containerizzate piuttosto che virtualizzate è lo standard de-facto nell'industria.
+
+\begin{center}
+    \includesvg[width=6.5in]{images/Container_Evolution.svg}
+\end{center}
+
+La distribuzione dei container sulle macchine virtuali può (e dovrebbe) avvenire tramite Kubernetes. Solitamente definito un "orchestratore", cioè un sistema in grado di orchestrare il ciclo di vita delle applicazioni sui nodi, Kubernetes permette di generare on-the-fly container anche molto complessi, distruggerli quando non sono più necessari, spostarli su diversi nodi per meglio bilanciare il carico, spegnerli, accenderli ed esporli verso l'esterno in base alle esigenze.
+
+La definizione di \href{https://kubernetes.io/}{Kubernetes} presente sulla documentazione ufficiale descrive perfettamente il sistema.
+
+\textit{"Kubernetes è una piattaforma portatile, estendibile e open-source per la gestione di carichi di lavoro e servizi containerizzati, in grado di facilitare sia la configurazione dichiarativa [degli applicativi, ndr] che l'automazione del ciclo di vita del software."}
+
+Analogamente, Kubernetes include una serie di meccanismi fondamentali per il corretto funzionametno di questo processo, come un sistema di esposizione dei servizi che consente di bilanciare il carico; l'auto-discovery degli applicativi sui nodi; la rapida mise-en-place di nuove versioni delle applicazioni ("rolling updates"), e \textbf{la capacità purgare gli applicativi infetti o compromessi in modo automatico}.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/Kubernetes-101-Architecture-Diagram.png}
+\end{center}
+
+Nonostante Kubernetes sia un orchestratore di container, questi ultimi non sono i \textit{first-class citziens} del sistema (i.e. "l'unità di lavoro di base"). Kubernetes preferisce, invece, lavorare con raggruppamenti logici di container chiamati "\textbf{Pod}". 
+
+Ad esempio, il Pod di DVWA potrebbe essere composto da due container: uno per il webserver PHP, e uno per MySQL. 
+
+Sia il webserver PHP che l'istanza MySQL dovrebbero essere containerizzati prima di essere orchestrati. Per fortuna, DVWA prevde già questa particolare casistica. Sulla repository GitHub del progetto, è infatti disponbiile una versione containerizzata del sistema, distribuita tramite Docker Hub (rif. \href{https://hub.docker.com/r/vulnerables/web-dvwa}{DVWA on Docker Hub}).
+
+Concettualmente, avendo l'immagine dei container (i.e. le istruzioni per generarli), è possibile istruire Kubernetes su come orchestrare l'applicazione, specificando la quantità e la qualità delle repliche, indicare i nodi da coinvolgere, aggiungere metadati.
+
+Difatto, lo sviluppatore dovrà interfacciarsi con la CLI di Kubernetes ("\href{https://kubernetes.io/docs/reference/kubectl/}{kubectl}"). Istruire Kubernetes su cosa fare, e interrogare lo stato del cluster, implica l'inviare una richiesta HTTP verso il Kubernetes API Server, che è il centro nevralgico delle attività dell'orchestratore. L'API Server sfrutta alcuni meccanismi ausiliari, come uno Scheduler e dei Controller, per popolare il cluster di nuovi applicativi. Non si andrà nel dettaglio su quali tipi di "oggetti" sono disponibili, ma ci si limiterà a dire che tutti gli oggetti di Kubernetes (Service Accounts, IAM Roles, Namespaces, etc) collaborano per garantire il corretto funzionamento del sistema. In un cluster reale, la maggior parte degli oggetti coesisterebbe sul cluster, oltre all'applicativo DVWA opportunamente replicato.
+
+Si aggiunge, però, che Kubernetes sfrutta un database distribuito ("\href{https://etcd.io/}{etcd}") per memorizzare lo stato del cluster.
+
+Kubernetes, poi, non ha visione dei nodi a livello fisico, ma si interfaccia eslcusivamente sui "worker nodes", cioè sulle macchine virtuali. Agganciare e sganciare macchine virtuali dal cluster è immediato e non comporta sforzi. In pratica, "replicare DVWA" su Kubernetes significa effettuare una POST HTTP Request verso l'API Server, e attendere che gli oggetti di Kubernetes effettuino la replicazione. Under-the-hood, non siamo interessati a *come* questo viene fatto nel contesto di questo esame.
+
+\subsection{Containerizzazione tramite Docker}
+
+Gli applicativi orchestrati su Kubernetes devono essere containerizzati prima di essere orchestrati.
+
+\begin{center}
+    \includegraphics[width=5in]{images/docker.png}
+\end{center}
+
+Un possibile runtime di containerizzazione è \href{https://docs.docker.com/get-started/overview/}{Docker}, composto da un engine (il "Docker Daemon") e una CLI. Le immagini dei container vengono prodotti a partire dai Dockerfile, cioè un set di istruzioni (un "playbook") che istruisce il daemon su come realizzare, appunto, il container. Tipiche istruzioni riguardano l'utilizzo di certi software, l'installazione di dipendenze, e in generale tutto ciò che serve per il corretto funzionamento dell'applicativo. Si allega di seguito un esempio di Dockerfile dalla documentazione ufficiale di Docker.
+
+\begin{code}
+\begin{minted}{dockerfile}
+# Questo esempio è ripreso dal Dockerfile ufficiale di Golang 1.22
+
+FROM buildpack-deps:bookworm-scm
+
+# install cgo-related dependencies
+RUN set -eux; \
+	apt-get update; \
+	apt-get install -y --no-install-recommends \
+		g++ \
+		gcc \
+		libc6-dev \
+		make \
+		pkg-config \
+	; \
+	rm -rf /var/lib/apt/lists/*
+
+ENV GOLANG_VERSION 1.22.2
+
+ENV GOTOOLCHAIN=local
+
+ENV GOPATH /go
+ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
+COPY --from=build --link /usr/local/go/ /usr/local/go/
+RUN mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
+WORKDIR $GOPATH
+\end{minted}
+\end{code}
+
+Il lettore osserverà come un container creato con Docker è decisamente più snello di una macchina virtuale utilizzata per lo stesso scopo (cioè distribuire applicativi). Il tema della sicurezza apre margini di discussione, ma Docker rimane comunque un sistema ben collaudato.
+
+Una volta containerizzati, gli applicativi devono essere caricati su un'image repository. I cloud provider offrono servizi di questo tipo, ma è anche possibile - ad esempio - sfruttare soluzioni open source, o banalmente usare un'\href{https://hub.docker.com/_/registry}{istanza on-premise del Docker Registry}.
+
+Si fa osservare, comunque, che Kubernetes non usa Docker come container runtime, ma il software open-source "\href{https://containerd.io/}{containerd}". Entrambi usano comunque lo standard \href{https://opencontainers.org/}{Open Container Initiative} per produrre le immagini (che sono fondamentalmente blob di dati), quindi risultano intercambiabili.
+
+\subsection{Local Kubernetes Development}
+
+Esistono numerosi strumenti per lavorare in locale con Kubernetes. Questi strumenti permettono di creare cluster locali (virtualizzati o containerizzati) e operare su di essi (in ambienti di "development") prima di procedere ad ambienti reali (di "staging", "pre-production", o "production").
+
+Fra i tool open-source disponibili, si annoverano Kind, Minikube e Docker Desktop.
+
+Docker Desktop integra, oltre al Docker Daemon, anche un \href{https://docs.docker.com/desktop/kubernetes/}{engine integrato di Kubernetes} che permette la creazione di un cluster mono-nodo. E' una recente introduzione del team di sviluppo di Docker e non risulta ad oggi particolarmente configurabile.
+
+\href{https://kind.sigs.k8s.io/}{Kind} permette invece di creare cluster multi-nodo, dove ogni nodo rappresenta un container su Docker. All'interno dei container dei nodi (i.e. macchine virtuali), sarebbero posizionati ulteriori container raggruppati in pod. Soluzione efficace e ben mantenuta dagli sviluppatori.
+
+\href{https://minikube.sigs.k8s.io/}{Minikube}, invece, permette di creare cluster mono-nodo, retrocompatibili con precedenti versioni di Kubernetes, ed è il tool consigliato sulla documentazione stessa di Kubernetes.
+
+Tutti questi tool differiscono di poco fra loro, almneno per i fini di questo progetto. Si è scelto di utilizzare Minikube.

@@ -1,0 +1,95 @@
+% self defined colors for colored code (can add more colors)
+\definecolor{green}{rgb}{0.1,0.5,0.2} % rgb defined between 0 and 1
+\definecolor{blue}{rgb}{0,0.3,0.7}
+\definecolor{purple}{rgb}{0.7,0,0.7}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.3,0}
+
+% writing code in the document as list
+% can be changed, add changed version before your code (possible to have multiple versions within one doc)
+\lstset{ 
+  basicstyle=\ttfamily\UseRawInputEncoding\small,
+  extendedchars=true, % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  breaklines=true,                 
+  escapeinside={\%*}{*)}, % if you want to add LaTeX within your code
+  keepspaces=true,
+  morekeywords={*,...}, % if you want to add more keywords
+  showstringspaces=false,          
+  tabsize=2, % sets default tabsize to 2 spaces
+  numbersep=5pt, % how far the line-numbers are from the code
+  numbers=left,                   
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{purple},
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  identifierstyle=\color{codeorange}
+}
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\section{Approcciare applicativi del mondo reale}
+\lhead{Approcciare applicativi del mondo reale}
+
+Un tipico studente del corso di Penetration Testing approccerà lo studio replicando, sotto istruzioni fornite dal docente, un ambiente virtualizzato in cui poter operare in maniera autonoma e sicura. L'ambiente, generalmente realizzato mediante i software di virtualizzazione VMWare o VirtualBox, consiste di macchine virtuali raggruppabili, ad esempio, in una rete NAT. Per la natura del corso, lo studente provvederà a caricare una macchina virtuali montante Kali Linux, e altrettante macchine virtuali vulnerable-by-design (da qui in poi "vulnerabili") da individuare, esplorare e infine soggiogare. Poiché queste macchine hanno l'esigenza di comunicare fra loro, e poiché non si vuole esporre le macchine virtuali  verso l'esterno, allora lo studente realizzerà una rete NAT a cui afferiranno tutte le macchine virtuali (in genere, Metasploitable 1, 2, 3, e altre macchine tipicamente impiegate per il corso).
+
+In questo modo, le macchine potranno accedere ad Internet venendo schermati dall'host dello studente; inoltre, le macchine saranno in grado di comunicare fra loro. L'obiettivo di questa configurazione è permettere che la macchina Kali riesca ad interfacciarsi con le macchine vulnerabili, e con le applicazioni che esse ospitano.
+
+\begin{center}
+    \includegraphics[width=4in]{images/course_network.drawio.png}
+\end{center}
+
+Chiaramente, si tratta di un ambiente di studio, propedeutico all'apprendimento dei contenuti erogati durante il corso. 
+
+Nella realtà, lo studente dovrà interfacciarsi con macchine configurate in maniera molto diversa. Tralasciando i dettagli di networking (che non sono trascurabili, ma che non rientrano nell'esame in oggetto), una macchina attaccante potrebbe dover interfacciarsi con una macchina target sita sulla rete pubblica, a prescindere dalla sua specifica locazione.
+
+\begin{center}
+    \includegraphics[width=5in]{images/real_world_network.drawio.png}
+\end{center}
+
+Nel nostro studio, la caratterizzazione del server target (i.e. se ha servizi vulnerabili, come li espone, come posso sfruttarli) in sé non è importante, se non per l'effettivo processo di Pentration Testing così come articolato durante il corso.
+
+Indaghiamo, invece, la "cornice" attorno al target.
+
+Plausibilmente, il server target è offerto (in leasing, o in altre forme commerciali) da un cloud provider, come Amazon Web Services (AWS), Microsoft Azure, o Google Cloud Provider. Questi tre provider, che sono i più noti e popolari, non sono comunque gli unici: alternative ben note sono rappresentate dai provider di IBM e Oracle, mentre in Italia viene tipicamente citato Aruba.
+
+In alternativa, il server target potrebbe essere sito in colocazione ("colocation") in un data center di aziende che non fungono da cloud provider, come Hetzner. Questa soluzionesi differenzia dai server offerti dai cloud provider per i modelli di responsabilità adottati, e nei servizi offerti. In genere, l'impiego di un cloud provider non si limita al subaffitto di un server, ma implica l'utilizzo di strumenti accessori e servizi integrativi che permettono di sfruttare a pieno le capacità e le risorse del provider; nel caso di Hetzner, invece, ci si limiterebbe a prendere in carico il server.
+
+\begin{center}
+    \includegraphics[width=5in]{images/real_world_network_2.drawio.png}
+\end{center}
+
+Si osservi che sia nel caso del cloud provider che del colocator, il server è localizzato in un data center. In Italia, è di recente apertura il data center di Milano, occupato per lo più da Amazon Web Services.
+
+Il provider del server, in realtà, non offre un intero server: una delle idea fondamentali attorno al Cloud Computing è che il provider si limita, invece, ad offrire una certa \textit{slice} del server, nella forma di una macchina virtuale. Il cliente, poi, è libero di innestare ulteriori macchine virtuali (gli applicativi) sulla propria macchina virtuale concessa dal provider, oppure usare soluzioni più snelle, moderne e compatte come i container -- che, in ogni caso, sarebbero situate sulla macchina virtuale del provider.
+
+\begin{center}
+    \includegraphics[width=5in]{images/real_world_network_3.drawio.png}
+\end{center}
+
+Nella realtà, una singola macchina virtuale non è sufficiente. La scalabilità verticale degli applicativi ha degli hard caps non trascurabili, specialmente in termini di performance dell'hardware -- pur facendo osservare che i provider permettono di modificare l'istanza della macchina virtuale (i.e. le caratteristiche hardware, spesso declinate in memoria e capacità di calcolo) con una certa facilità. Un pattern ben noto nel cloud computing, una regola contemporaneamente scritta e non scritta, riguarda l'esteso impiego della scalabilità orizzontale per bilanciare il carico fra le macchine virtuali.
+
+AWS, così come gli altri cloud provider, mette a disposizione soluzioni commerciali e tecnologiche per implementare cluster di macchine virtuali, in qualche misura legate fra loro, e ospitanti gli stessi applicativi. Soluzioni del genere sono rappresentate da \href{https://aws.amazon.com/it/ecs/}{Elastic Container Service} ed \href{https://aws.amazon.com/it/elasticbeanstalk/}{Elastic Beanstalk}, fra le altre. Se, invece, ci si vuole limitare al provisioning di macchine virtuali, una soluzione tipica è rappresentata dagli \href{https://aws.amazon.com/it/ec2/autoscaling/}{EC2 Autoscaling Group}, dove con "\href{https://aws.amazon.com/it/ec2/}{EC2}" intendiamo una macchina virtuale offerta da AWS.
+
+Quindi, sottointendendo la presenza di un Load Balancer (ala-\href{https://www.nginx.com/}{Nginx}, o una diversa soluzione open-source) che funga anche da proxy/reverse-proxy, l'attaccante Kali dovrà interfacciarsi spesso con un cluster di una certa quantità di macchine virtuali, ognuna situata potenzialmente su nodi fisici diversi (anche per assicurare affidabilità e high-avaibility in contesti multi-region), e ognuna contenente uno o più applicativi, vulnerabili o meno.
+
+\begin{center}
+    \includegraphics[width=5in]{images/real_world_network_4.drawio.png}
+\end{center}
+
+Nella pratica, il punto di incontro iniziale per l'attaccante è il Load Balancer. E' anche possibile che le macchine virtuali siano posizionate in segmenti diversi di rete, e a volte non sono raggiungibili *direttamente* dall'esterno. A volte si fa anche uso di un Bastion, o configurazioni di rete particolari, e potenzialmente vulnerabili, che aumentano notevolmente l'attack surface disponibile.
+
+Le macchine virtuali vulnerabili usate durante il corso, come Metasploitabile 1 e 2, sono proviste di applicativi (tarate a specifiche versioni vulnerabili, in genere) come servizi FTP o applicazioni web fallaci (es. DVWA). Se, ad esempio, volessi bilanciare il carico dell'applicativo DVWA offerto su una macchina virtuale Metasploitable 2 schermata da un Load Balancer e su nodi offerti da un provider, avrei bisogno di un modo efficace ed efficiente di effettivamente replicare l'applicativo DVWA su tutte le macchine virtuali. Si osservi che l'attaccante Kali, in questa configurazione, potrebbe compromettere anche solo una delle istanze di DVWA, invece che tutte -- dipenderebbe dallo scope del lavoro di penetration testing da svolgere.
+
+Con una sola macchina virtuale, non subentrerebbe la necessità di replicare DVWA.
+Con più macchine virtuali, subentra invece la necessità di distribuire repliche di DVWA ad una platea considerevole di host, e di renderle rapidamente disponibili ad accogliere nuove richieste dal Load Balancer.
+
+Un caso molto tipico è rappresentato da una situazione in cui DVWA non sarebbe l'unica applicazione sulle macchine virtuali. E' facile immaginare un sistema in cui la logica di business è espletata da molteplici applicativi, come sistemi di messaggistica (es. code, ala-\href{https://kafka.apache.org/}{Kafka}), DBMS (es. MySQL), cache drivers (es. \href{https://redis.io/}{Redis}), e così via. Per quanto la casistica dei database sia particolare, poiché implica l'esigenza di sincronizzare i dati fra le varie istanze, l'idea di avere più applicativi insieme su un certo cluster permane.
+
+Emerge quindi la necessità di avere uno strumento atto a coordinare il cluster, governandone i nodi e le sue applicazioni. In questo contesto, lo stato dell'arte è rappresentato da \textbf{Kubernetes}.
+
+\begin{center}
+    \includegraphics[width=5in]{images/real_world_network_5.drawio.png}
+\end{center}
+
+E' possibile fare tutto quello che fa Kubernetes senza Kubernetes, ma il costo (in termini economici!) è infinitamente più alto. Sempre più aziende, anche in Italia, stanno iniziando i primi timidi approcci a Kubernetes, visto come il miglior orchestratore disponibile ad oggi, e capace di sostituire la maggior parte dei servizi offerti dai cloud provider in maniera nativa ed open-source. Con Kubernetes, e le sue versioni fully-managed sui provider (es. \href{https://aws.amazon.com/it/eks/}{Elastic Kubernetes Service, EKS}), i provider si "riducono" a leaser di macchine virtuali, col vantaggio che il cliente non debba curarsi - fra le altre cose - delle condizioni fisiche dell'hardware.

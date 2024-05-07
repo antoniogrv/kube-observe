@@ -1,0 +1,151 @@
+% self defined colors for colored code (can add more colors)
+\definecolor{green}{rgb}{0.1,0.5,0.2} % rgb defined between 0 and 1
+\definecolor{blue}{rgb}{0,0.3,0.7}
+\definecolor{purple}{rgb}{0.7,0,0.7}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.3,0}
+
+% writing code in the document as list
+% can be changed, add changed version before your code (possible to have multiple versions within one doc)
+\lstset{ 
+  basicstyle=\ttfamily\UseRawInputEncoding\small,
+  extendedchars=true, % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  breaklines=true,                 
+  escapeinside={\%*}{*)}, % if you want to add LaTeX within your code
+  keepspaces=true,
+  morekeywords={*,...}, % if you want to add more keywords
+  showstringspaces=false,          
+  tabsize=2, % sets default tabsize to 2 spaces
+  numbersep=5pt, % how far the line-numbers are from the code
+  numbers=left,                   
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{purple},
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  identifierstyle=\color{codeorange}
+}
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\section{Strumenti di osservabilità}
+\lhead{Strumenti di osservabilità}
+
+L'ELK Stack, che si basa su Elasticsearch e Kibana, offre un potente framework per l'analisi e la visualizzazione dei dati dei log.
+
+\begin{itemize}
+    \item \textbf{Elasticsearch:} Questo è il cuore del sistema. Elasticsearch è un motore di ricerca distribuito e altamente scalabile che consente di memorizzare, indicizzare e cercare grandi quantità di dati in tempo reale. I dati vengono archiviati in cluster, dove ogni nodo contiene una parte del dataset. Elasticsearch fornisce API RESTful per interrogare i dati e supporta una vasta gamma di operazioni di ricerca e aggregazione.
+
+    I dati da analizzare vengono inviati a Elasticsearch per l'indicizzazione. Questi dati possono provenire da una varietà di fonti, come log di applicazioni, eventi di sistema, metriche di performance, dati di sensori, e così via. L'ingestione dei dati può essere gestita tramite Logstash o tramite altre soluzioni di ingestione personalizzate.
+    
+    \item \textbf{Kibana:} Questa è l'interfaccia utente che consente agli utenti di esplorare, analizzare e visualizzare i dati memorizzati in Elasticsearch. Kibana fornisce un'ampia gamma di strumenti per la creazione di dashboard, grafici, mappe, e altre visualizzazioni interattive. Gli utenti possono eseguire query sui dati, creare filtri, eseguire analisi temporali e geospaziali, e personalizzare l'aspetto e la disposizione delle visualizzazioni.
+
+    Gli utenti interagiscono con l'ELK Stack attraverso l'interfaccia utente di Kibana. Possono eseguire query sui dati, esplorare i log, identificare tendenze e anomalie, monitorare le metriche di sistema, e risolvere i problemi di prestazioni. Kibana fornisce anche funzionalità per la collaborazione, consentendo agli utenti di condividere dashboard e visualizzazioni con i loro colleghi.
+\end{itemize}
+
+Utilizzare l'ELK Stack come SIEM (Security Information and Event Management) implica sfruttare le capacità di Elasticsearch per l'analisi dei dati dei log e Kibana per la visualizzazione dei risultati. In questo contesto, i dati provenienti da diverse fonti, come registri di sistema, eventi di sicurezza e log di rete, vengono inviati a Elasticsearch per l'indicizzazione. Utilizzando le potenti funzionalità di interrogazione e aggregazione di Elasticsearch, gli analisti di sicurezza possono individuare schemi anomali o comportamenti sospetti che potrebbero indicare un'attività malevola. Kibana fornisce un'interfaccia intuitiva per esplorare i dati, creare dashboard personalizzate e monitorare continuamente lo stato della sicurezza del sistema.
+
+Per sfruttare l'ELK Stack come SOAR (Security Orchestration, Automation, and Response), è possibile integrare l'automazione delle risposte agli incidenti direttamente nel flusso di lavoro di Elasticsearch e Kibana. Ad esempio, è possibile configurare avvisi basati su criteri predefiniti per rilevare automaticamente le minacce e avviare risposte programmate, come l'isolamento di dispositivi compromessi, il blocco di indirizzi IP sospetti o l'avvio di investigazioni dettagliate. Utilizzando gli strumenti di visualizzazione di Kibana, gli operatori possono monitorare le azioni automatizzate e ottenere una panoramica completa delle operazioni di risposta agli incidenti.
+
+Insieme, l'utilizzo dell'ELK Stack come SIEM e SOAR offre un'approccio integrato e altamente personalizzabile alla gestione della sicurezza informatica. Grazie alle sue capacità di analisi avanzate, automazione delle risposte e visualizzazione dei dati, l'ELK Stack consente alle organizzazioni di rilevare, rispondere e mitigare le minacce in modo tempestivo ed efficiente, migliorando così la sicurezza complessiva del loro ambiente IT.
+
+Per aggiungere automazione delle risposte agli incidenti utilizzando l'ELK Stack come SOAR, è possibile integrare la funzionalità di rilevamento degli eventi di Elasticsearch con script di automazione personalizzati.
+
+Segue un semplice esempio su come configurare Elasticsearch per creare un alert in base ad un endpoint HTTP di accesso.
+
+\begin{code}
+\begin{minted}{dockerfile}
+PUT _watcher/watch/login_failed_alert
+{
+  "trigger": {
+    "schedule": { "interval": "1m" }
+  },
+  "input": {
+    "search": {
+      "request": {
+        "indices": ["logs"],
+        "body": {
+          "query": {
+            "bool": {
+              "must": [
+                { "match": { "event": "login_failure" }},
+                { "range": { "@timestamp": { "gte": "now-1m" }}}
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "condition": {
+    "compare": {
+      "ctx.payload.hits.total": { "gt": 5 }
+    }
+  },
+  "actions": {
+    "notify": {
+      "logging": {
+        "text": "Troppe richieste di login."
+      }
+    },
+    "webhook": {
+      "method": "POST",
+      "host": "example.com",
+      "port": 8080,
+      "path": "/automated_response",
+      "body": "Troppe richieste di login."
+    }
+  }
+}
+\end{minted}
+\end{code}
+
+L'integrazione tra l'ELK Stack e Kubernetes consente di raccogliere, analizzare e visualizzare i dati dei log generati dai container (es. DVWA) e dalle applicazioni in esecuzione su un cluster Kubernetes.
+
+Segue un esempio (non funzionante, ma concettuale) di come agganciare un sidecar container per effettuare il logging di un pod.
+
+\begin{code}
+\begin{minted}{dockerfile}
+apiVersion: v1
+kind: ElasticsearchLogger
+metadata:
+  name: elasticsearch
+  namespace: kube-logging
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+    - name: http
+      port: 9200
+
+\end{minted}
+\end{code}
+
+Successivamente, definiamo un pod che includa il nostro container principale insieme a un sidecar container che invia i log a Elasticsearch. In questo esempio, utilizzeremo un'applicazione web Python:
+
+\begin{code}
+\begin{minted}{dockerfile}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  namespace: default
+spec:
+  containers:
+  - name: myapp-container
+    image: myapp-image:v1
+    ports:
+    - containerPort: 8080
+  - name: log-forwarder
+    image: log-forwarder-image:v1
+    env:
+    - name: ELASTICSEARCH_HOST
+      value: "elasticsearch.kube-logging.svc.cluster.local"
+    - name: ELASTICSEARCH_PORT
+      value: "9200"
+\end{minted}
+\end{code}
+
+Nel pod, il container myapp-container è l'applicazione web che vogliamo monitorare, mentre il container log-forwarder è il sidecar container che invia i log a Elasticsearch. Questo container può essere implementato utilizzando un'immagine personalizzata che utilizza strumenti come Fluentd o Logstash per l'invio dei log a Elasticsearch.
+
+Infine, possiamo applicare queste configurazioni al cluster Kubernetes utilizzando il comando kubectl apply -f <nome-file.yaml> per creare il servizio e il pod. Una volta applicate, i log generati dall'applicazione web saranno inviati a Elasticsearch e potranno essere esplorati e visualizzati attraverso Kibana per l'analisi e il monitoraggio.

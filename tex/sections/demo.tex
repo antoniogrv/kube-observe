@@ -1,0 +1,293 @@
+% self defined colors for colored code (can add more colors)
+\definecolor{green}{rgb}{0.1,0.5,0.2} % rgb defined between 0 and 1
+\definecolor{blue}{rgb}{0,0.3,0.7}
+\definecolor{purple}{rgb}{0.7,0,0.7}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{codeorange}{rgb}{0.9,0.3,0}
+
+% writing code in the document as list
+% can be changed, add changed version before your code (possible to have multiple versions within one doc)
+\lstset{ 
+  basicstyle=\ttfamily\UseRawInputEncoding\small,
+  extendedchars=true, % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  breaklines=true,                 
+  escapeinside={\%*}{*)}, % if you want to add LaTeX within your code
+  keepspaces=true,
+  morekeywords={*,...}, % if you want to add more keywords
+  showstringspaces=false,          
+  tabsize=2, % sets default tabsize to 2 spaces
+  numbersep=5pt, % how far the line-numbers are from the code
+  numbers=left,                   
+  numberstyle=\tiny\color{gray},
+  stringstyle=\color{purple},
+  commentstyle=\color{gray},
+  keywordstyle=\color{blue},
+  identifierstyle=\color{codeorange}
+}
+
+%=================================================================
+%                           Start Document
+%=================================================================
+\section{Bootstrap di un SIEM su Kubernetes}
+\lhead{Bootstrap di un SIEM su Kubernetes}
+
+L'obiettivo sperimentale di questa attività progettuale è effettuare il bootstrap di un SIEM usando l'ELK Stack su Kubernetes. Di conseguenza, l'obiettivo risulta essere impostare e configurare adeguatamente un nuovo cluster Kubernetes per accogliere le integrazioni di Elastic al fine ultimo di centralizzare la raccolta delle informazioni e l'automazione delle risposte, come abbiamo visto in precedenza.
+
+Nella fattispecie, creeremo con Minikube un cluster mono-nodo che ospiterà il SIEM. Per via delle specifiche necessità di Elastic, potremo creare un cluster usando la CLI di Minikube e configurando adeguatamente l'hardware virtuale allocato al container:
+
+\begin{code}
+\begin{minted}{dockerfile}
+minikube start --cpus 4 --memory 8192
+\end{minted}
+\end{code}
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/2.png}
+\end{center}
+
+Kubernetes usa dei "contesti" per permettere la gestione dei cluster multipli. Lanciare il comando sopraindicato cambierà automaticamente il contesto predefinito al nuovo contesto "minikube". Possiamo quindi verificare il corretto funzionamento dell'API Server di Kubernetes, che è il fulcro del sistema. E' anche possibile utilizzare strumenti ausiliari come \href{https://k9scli.io/}{K9s} per visualizzare in maniera più comoda il cluster.
+
+\begin{code}
+\begin{minted}{dockerfile}
+kubectl cluster-info
+Kubernetes control plane is running at https://127.0.0.1:56326
+CoreDNS is running at https://127.0.0.1/api/v1/namespaces/kube-system [...]
+\end{minted}
+\end{code}
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/6.png}
+\end{center}
+
+Con K9s possiamo accedere al contesto e verificare i pod attualmente presenti. Poiché l'installazione è andata a buon fine, inizialmente avremo solo i pod del namespace kube-system, necessari all'API Server per governare il cluster.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/7.png}
+\end{center}
+
+A questo punto possiamo agganciare Elastic al cluster Kubernetes mediante la CLI. Come accennato in precedenza, effettuare un "deploy" su Kubernetes significare effettuare una POST HTTP Request verso l'API Server, indicando un file YAML come input. Di contro, Kubernetes genererà adeguatamente una serie di oggetti nel cluster per espletare le funzioni richieste. I file YAML di configurazioni usati sono rinvenibili nella directory /scripts della repository del progetto.
+
+\begin{code}
+\begin{minted}{yaml}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: es-logging
+  name: es-logging
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: es-logging
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: es-logging
+    spec:
+      containers:
+      - image: elasticsearch:7.8.0
+        imagePullPolicy: IfNotPresent
+        name: elasticsearch
+        ports:
+        - containerPort: 9200
+          name: http
+          protocol: TCP
+        - containerPort: 9300
+          name: transport
+          protocol: TCP
+        env:
+        - name: discovery.type
+          value: single-node
+        volumeMounts:
+        - name: elasticsearch-logging
+          mountPath: /data
+        livenessProbe:
+          httpGet:
+            port: http
+            path: /_cluster/health
+          initialDelaySeconds: 40
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: elasticsearch-logging
+        emptyDir: {}
+\end{minted}
+\end{code}
+
+\begin{code}
+\begin{minted}{yaml}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: es-service
+  labels:
+    app: es-logging
+    kubernetes.io/cluster-service: "true"
+    addonmanager.kubernetes.io/mode: Reconcile
+    kubernetes.io/name: "Elasticsearch"
+spec:
+  type: NodePort
+  ports:
+  - port: 9200
+    protocol: TCP
+    targetPort: http
+  selector:
+    app: es-logging
+\end{minted}
+\end{code}
+
+L'applicazione dei due componenti sopracitati, cioè il "Deployment" di Elastic (i.e. il backend) e il "Service" (l'endpoint con cui parlerà Kibana) può essere svolto tramite il seguente comando:
+
+\begin{code}
+\begin{minted}{yaml}
+kubectl apply -f es-deployment.yaml -f es-service.yaml 
+\end{minted}
+\end{code}
+
+Rispettivamente, il primo serve ad espletare la "logica di business", e il secondo ad esporla fuori e dentro al cluster.
+
+Verifichiamo la corretta creazione dei pod su K9s e dalla CLI.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/16.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/11.png}
+\end{center}
+
+Possiamo adesso esporre Elastic verso l'esterno (fuori da Kubernetes) effettuando un port-binding fra la porta del servizio nel cluster, e una porta disponibile sull'host.
+
+\begin{code}
+\begin{minted}{yaml}
+minikube service es-service
+\end{minted}
+\end{code}
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/12.png}
+\end{center}
+
+Se tutto è andato a buon fine, otterremo un JSON di risposta effettuando una GET alla porta 56526 del localhost.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/13.png}
+\end{center}
+
+Possiamo reiterare lo stesso procedimento con Kibana. Questo mostra quanto è facile e immediato "deployare" applicativi su Kubernetes. Fondamentalmente, l'intero processo è astratto esclusivamente ai file YAML necessari a configurare i servizi.
+
+\begin{code}
+\begin{minted}{yaml}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kib-manual
+  name: kibana-logging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kib-manual
+  template:
+    metadata:
+      labels:
+        app: kib-manual
+    spec:
+      containers:
+      - image: kibana:7.8.0
+        name: kibana
+        ports:
+        - containerPort: 5601
+          name: ui
+          protocol: TCP
+
+\end{minted}
+\end{code}
+
+\begin{code}
+\begin{minted}{yaml}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kib-manual
+  name: kibana-service
+spec:
+  ports:
+  - port: 5601
+    protocol: TCP
+    targetPort: 5601
+  selector:
+    app: kib-manual
+  type: NodePort
+
+\end{minted}
+\end{code}
+
+Verifichiamo il pod di Kibana con K9s.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/20.png}
+\end{center}
+
+Inoltre, il deployment produce un Service per esporre il servizio verso l'esterno e internamente nel cluster.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/14.png}
+\end{center}
+
+Poiché Kibana è sostanzialmente un frontend per Elastic, che funge da backend, bisogna indicare l'host di Elastic (in riferimento al suo "ClusterIP", cioè l'IP di Elastic dentro il cluster) nelle variabili d'ambiente di Kibana.
+
+\begin{code}
+\begin{minted}{yaml}
+kubectl set env deployments/kibana-logging ELASTICSEARCH_HOSTS=http://10.103.89.17:9200
+deployment.apps/kibana-logging env updated
+\end{minted}
+\end{code}
+
+Da K9s possiamo accedere ai log del pod di Kibana. Se tutto è andato a buon fine, un messaggio di successo ci notificherà che il server di Kibana è in esecuzione sulla porta 5601.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/15.png}
+\end{center}
+
+Infatti, se ci rechiamo su localhost:56699 dopo aver effettuato il port-fowarding tramite Minikube, otterremo il risultato auspicato:
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/4.png}
+\end{center}
+
+Quello che vediamo è effettivamente definibile come un "Observability Center" che, con i moduli opportuni, può trasformarsi in un SIEM. Elastic è un servizio plug-and-play: basta attivare le integrazioni desiderate per raccogliere i dati che ci interessano. In particolare, sono disponibili le seguenti categorie di integrazioni:
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/3.png}
+\end{center}
+
+Accedendo alla voce "SIEM" otteniamo più dettagli sulle integrazioni disponibili.
+
+\begin{center}
+    \includegraphics[width=6.5in]{images/demo/10.png}
+\end{center}
+
+Come osserviamo, le integrazioni disponibili ad oggi riguardano prevalentemente sistemi enterprise, come Cisco (networking), Ibiquiti (firewalls), Suricata (IDS/IPS) e così via. Naturalmente, nulla vieta al developer di sviluppare una propria integrazione ad-hoc per le proprie esigenze.
+
+Quindi, è stato opportunamente effettuato il bootstrap di un SIEM con Kubernetes, pur non attivando nuove integrazioni poiché quelle disponibili riguardano solo soluzioni enterprise, che richiedono l'attivazione di API Keys (in genere a pagamento).
+
+Si aggiunge, infine, che l'autore ha provato ad attivare integrazioni alternative, come ad esempio Heartbeat per monitorare l'health status dei nodi, ma l'attivazione implica anche in questo caso API Keys o l'uso di credenziali particolari.
+
+In genere, le aziende che intendono usare Kubernetes ed ELK come SIEM provvedono a creare un cluster su un cloud provider (es. AWS), attivare delle API Keys su Elastic (e con le rispettive integrazioni) e lavorano quindi in ambienti multi-cluster (un cluster per il development, un cluster per la produzione e così via) usando però cluster reali, non affidandosi a Minikube, Kind o altre soluzioni (gratuite, per uno studente) di local development.
