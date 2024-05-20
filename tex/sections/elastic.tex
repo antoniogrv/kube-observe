@@ -31,6 +31,8 @@
 \section{Strumenti di osservabilità}
 \lhead{Strumenti di osservabilità}
 
+Innanzitutto, si osserva che Elastic è stato brevemente citato durante il corso nell'ambito di un esempio pratico per la fase di Target Exploitation (ref. Target Exploitation - Parte 2, slide 48/49).
+
 L'ELK Stack, che si basa su Elasticsearch e Kibana, offre un potente framework per l'analisi e la visualizzazione dei dati dei log.
 
 \begin{itemize}
@@ -43,15 +45,17 @@ L'ELK Stack, che si basa su Elasticsearch e Kibana, offre un potente framework p
     Gli utenti interagiscono con l'ELK Stack attraverso l'interfaccia utente di Kibana. Possono eseguire query sui dati, esplorare i log, identificare tendenze e anomalie, monitorare le metriche di sistema, e risolvere i problemi di prestazioni. Kibana fornisce anche funzionalità per la collaborazione, consentendo agli utenti di condividere dashboard e visualizzazioni con i loro colleghi.
 \end{itemize}
 
-Utilizzare l'ELK Stack come SIEM (Security Information and Event Management) implica sfruttare le capacità di Elasticsearch per l'analisi dei dati dei log e Kibana per la visualizzazione dei risultati. In questo contesto, i dati provenienti da diverse fonti, come registri di sistema, eventi di sicurezza e log di rete, vengono inviati a Elasticsearch per l'indicizzazione. Utilizzando le potenti funzionalità di interrogazione e aggregazione di Elasticsearch, gli analisti di sicurezza possono individuare schemi anomali o comportamenti sospetti che potrebbero indicare un'attività malevola. Kibana fornisce un'interfaccia intuitiva per esplorare i dati, creare dashboard personalizzate e monitorare continuamente lo stato della sicurezza del sistema.
+Utilizzare l'ELK Stack come SIEM implica sfruttare le capacità di Elasticsearch per l'analisi dei dati dei log e Kibana per la visualizzazione dei risultati. In questo contesto, i dati provenienti da diverse fonti, come registri di sistema, eventi di sicurezza e log di rete, vengono inviati a Elasticsearch per l'indicizzazione. Utilizzando le potenti funzionalità di interrogazione e aggregazione di Elasticsearch, gli analisti di sicurezza possono individuare schemi anomali o comportamenti sospetti che potrebbero indicare un'attività malevola. Kibana fornisce un'interfaccia intuitiva per esplorare i dati, creare dashboard personalizzate e monitorare continuamente lo stato della sicurezza del sistema.
 
-Per sfruttare l'ELK Stack come SOAR (Security Orchestration, Automation, and Response), è possibile integrare l'automazione delle risposte agli incidenti direttamente nel flusso di lavoro di Elasticsearch e Kibana. Ad esempio, è possibile configurare avvisi basati su criteri predefiniti per rilevare automaticamente le minacce e avviare risposte programmate, come l'isolamento di dispositivi compromessi, il blocco di indirizzi IP sospetti o l'avvio di investigazioni dettagliate. Utilizzando gli strumenti di visualizzazione di Kibana, gli operatori possono monitorare le azioni automatizzate e ottenere una panoramica completa delle operazioni di risposta agli incidenti.
+Per sfruttare l'ELK Stack come SOAR, invece, è possibile integrare l'automazione delle risposte agli incidenti (cioè l'engine SOAR in sé) direttamente nel flusso di lavoro di Elasticsearch e Kibana. Ad esempio, è possibile configurare avvisi basati su criteri predefiniti per rilevare automaticamente le minacce e avviare risposte programmate, come l'isolamento di dispositivi compromessi, il blocco di indirizzi IP sospetti o l'avvio di investigazioni dettagliate. Utilizzando gli strumenti di visualizzazione di Kibana, gli operatori possono monitorare le azioni automatizzate e ottenere una panoramica completa delle operazioni di risposta agli incidenti. 
 
-Insieme, l'utilizzo dell'ELK Stack come SIEM e SOAR offre un'approccio integrato e altamente personalizzabile alla gestione della sicurezza informatica. Grazie alle sue capacità di analisi avanzate, automazione delle risposte e visualizzazione dei dati, l'ELK Stack consente alle organizzazioni di rilevare, rispondere e mitigare le minacce in modo tempestivo ed efficiente, migliorando così la sicurezza complessiva del loro ambiente IT.
+Si fa osservare al lettore che tutto questo sarebbe realizzato attraverso specifiche integrazioni -- che, purtroppo, risultano *per lo più* vendor-locked (i.e. a pagamento o con necessità di API keys). Alternative FOSS (Free \& Open Source Software) esistono ma non si prestano al caso d'uso di Elastic.
 
-Per aggiungere automazione delle risposte agli incidenti utilizzando l'ELK Stack come SOAR, è possibile integrare la funzionalità di rilevamento degli eventi di Elasticsearch con script di automazione personalizzati.
+L'utilizzo dell'ELK Stack come SIEM e SOAR (in simultanea) offre un'approccio integrato e altamente personalizzabile alla gestione della sicurezza informatica di sistemi complessi. Grazie alle sue capacità di analisi avanzate, automazione delle risposte e visualizzazione dei dati, l'ELK Stack consente alle organizzazioni di rilevare, rispondere e mitigare le minacce in modo tempestivo ed efficiente, migliorando così la sicurezza complessiva del loro ambiente IT.
 
-Segue un semplice esempio su come configurare Elasticsearch per creare un alert in base ad un endpoint HTTP di accesso.
+Come postilla, per aggiungere automazione delle risposte agli incidenti utilizzando l'ELK Stack come SOAR, è possibile integrare la funzionalità di rilevamento degli eventi di Elasticsearch con script di automazione personalizzati (usando linguaggi ben noti).
+
+Segue un semplice esempio (non funzionante, solo concettuale) su come configurare Elasticsearch per creare un alert in base ad un endpoint HTTP di accesso.
 
 \begin{code}
 \begin{minted}{dockerfile}
@@ -100,9 +104,13 @@ PUT _watcher/watch/login_failed_alert
 \end{minted}
 \end{code}
 
-L'integrazione tra l'ELK Stack e Kubernetes consente di raccogliere, analizzare e visualizzare i dati dei log generati dai container (es. DVWA) e dalle applicazioni in esecuzione su un cluster Kubernetes.
+L'integrazione tra l'ELK Stack e Kubernetes consente di raccogliere, analizzare e visualizzare i dati dei log generati dai container (es. DVWA) e dalle applicazioni in esecuzione su un cluster Kubernetes. Potrebbe anche essere possibile integrare i probes di Kubernetes all'interno di Elastic. 
 
-Segue un esempio (non funzionante, ma concettuale) di come agganciare un sidecar container per effettuare il logging di un pod.
+\begin{center}
+    \includegraphics[width=6.5in]{images/kube-elastic.png}
+\end{center}
+
+Segue un esempio di come agganciare un sidecar container per effettuare il logging di un pod Kubernetes.
 
 \begin{code}
 \begin{minted}{dockerfile}
